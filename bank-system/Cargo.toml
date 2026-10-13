@@ -1,0 +1,8 @@
+[package]
+name = "bank-system"
+version = "0.1.0"
+edition = "2024"
+
+[lib]
+name = "bank_system"
+path = "src/lib.rs"

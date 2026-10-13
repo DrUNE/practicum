@@ -1,0 +1,11 @@
+[package]
+name = "my-system"
+version = "0.1.0"
+edition = "2024"
+
+[[bin]]
+name = "my-system"
+path = "src/main.rs"
+
+[dependencies]
+bank-system = { path = "../bank-system" }
