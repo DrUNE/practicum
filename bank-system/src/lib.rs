@@ -8,17 +8,26 @@ pub type Name = String;
 // f64 не используется — из-за ошибок округления при арифметике с плавающей точкой.
 pub type Balance = i64;
 
+// Валюта
+#[derive(Debug, Clone, PartialEq)]
+pub enum Currency {
+    Rub,
+    Usd,
+    Eur,
+}
+
 /// Структура Account хранит данные одного пользователя.
 /// Расширяема: в будущем можно добавить email, дату создания и т.д.
 #[derive(Debug, Clone)]
 pub struct Account {
     pub name: Name,
     pub balance: Balance,
+    pub currency: Currency,
 }
 
 impl Account {
-    fn new(name: Name) -> Self {
-        Account { name, balance: 0 }
+    fn new(name: Name, currency: Currency) -> Self {
+        Account { name, balance: 0, currency }
     }
 }
 
@@ -38,11 +47,11 @@ impl Storage {
 
     /// Добавляет пользователя. Возвращает Some(0) при успехе,
     /// None если пользователь уже существует.
-    pub fn add_user(&mut self, name: Name) -> Option<Balance> {
+    pub fn add_user(&mut self, name: Name, currency: Currency) -> Option<Balance> {
         if self.accounts.contains_key(&name) {
             None
         } else {
-            self.accounts.insert(name.clone(), Account::new(name));
+            self.accounts.insert(name.clone(), Account::new(name, currency));
             Some(0)
         }
     }
@@ -111,21 +120,21 @@ mod tests {
     #[test]
     fn test_add_user_success() {
         let mut storage = Storage::new();
-        assert_eq!(storage.add_user("Alice".to_string()), Some(0));
+        assert_eq!(storage.add_user("Alice".to_string(), Currency::Usd), Some(0));
     }
 
     #[test]
     fn test_add_user_duplicate() {
         let mut storage = Storage::new();
-        storage.add_user("Alice".to_string());
+        storage.add_user("Alice".to_string(), Currency::Usd);
         // Второй раз — пользователь уже существует
-        assert_eq!(storage.add_user("Alice".to_string()), None);
+        assert_eq!(storage.add_user("Alice".to_string(), Currency::Usd), None);
     }
 
     #[test]
     fn test_remove_user_returns_balance() {
         let mut storage = Storage::new();
-        storage.add_user("Bob".to_string());
+        storage.add_user("Bob".to_string(), Currency::Rub);
         storage.deposit(&"Bob".to_string(), 100).unwrap();
         assert_eq!(storage.remove_user(&"Bob".to_string()), Some(100));
     }
@@ -139,7 +148,7 @@ mod tests {
     #[test]
     fn test_deposit_increases_balance() {
         let mut storage = Storage::new();
-        storage.add_user("Charlie".to_string());
+        storage.add_user("Charlie".to_string(), Currency::Eur);
         let result = storage.deposit(&"Charlie".to_string(), 200);
         assert_eq!(result, Ok(200));
         assert_eq!(storage.get_balance(&"Charlie".to_string()), Some(200));
@@ -148,7 +157,7 @@ mod tests {
     #[test]
     fn test_deposit_negative_amount_fails() {
         let mut storage = Storage::new();
-        storage.add_user("Charlie".to_string());
+        storage.add_user("Charlie".to_string(), Currency::Eur);
         assert!(storage.deposit(&"Charlie".to_string(), -50).is_err());
     }
 
@@ -161,7 +170,7 @@ mod tests {
     #[test]
     fn test_withdraw_success() {
         let mut storage = Storage::new();
-        storage.add_user("Eve".to_string());
+        storage.add_user("Eve".to_string(), Currency::Rub);
         storage.deposit(&"Eve".to_string(), 500).unwrap();
         let result = storage.withdraw(&"Eve".to_string(), 200);
         assert_eq!(result, Ok(300));
@@ -171,7 +180,7 @@ mod tests {
     #[test]
     fn test_withdraw_insufficient_funds() {
         let mut storage = Storage::new();
-        storage.add_user("Frank".to_string());
+        storage.add_user("Frank".to_string(), Currency::Usd);
         storage.deposit(&"Frank".to_string(), 50).unwrap();
         // Пытаемся снять больше, чем есть
         assert!(storage.withdraw(&"Frank".to_string(), 100).is_err());
@@ -182,7 +191,7 @@ mod tests {
     #[test]
     fn test_withdraw_negative_amount_fails() {
         let mut storage = Storage::new();
-        storage.add_user("Grace".to_string());
+        storage.add_user("Grace".to_string(), Currency::Eur);
         assert!(storage.withdraw(&"Grace".to_string(), -10).is_err());
     }
 
@@ -195,9 +204,24 @@ mod tests {
     #[test]
     fn test_multiple_deposits() {
         let mut storage = Storage::new();
-        storage.add_user("Hank".to_string());
+        storage.add_user("Hank".to_string(), Currency::Rub);
         storage.deposit(&"Hank".to_string(), 1000).unwrap();
         storage.deposit(&"Hank".to_string(), 500).unwrap();
         assert_eq!(storage.get_balance(&"Hank".to_string()), Some(1500));
+    }
+
+    #[test]
+    fn test_different_currencies() {
+        let mut storage = Storage::new();
+        storage.add_user("Alice".to_string(), Currency::Usd);
+        storage.add_user("Bob".to_string(), Currency::Rub);
+
+        // проверяем, что оба пользователя добавлены успешно
+        assert_eq!(storage.get_balance(&"Alice".to_string()), Some(0));
+        assert_eq!(storage.get_balance(&"Bob".to_string()), Some(0));
+
+        // пробуем снять деньги из каждого счета
+        assert!(storage.withdraw(&"Alice".to_string(), 100).is_err());
+        assert!(storage.withdraw(&"Bob".to_string(), 100).is_err());
     }
 }

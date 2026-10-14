@@ -1,4 +1,5 @@
-use bank_system::{Name, Storage};
+use bank_system::{Name, Storage, Currency};
+
 use std::env;
 use std::process;
 
@@ -25,7 +26,7 @@ fn main() {
 
     // Предзаполняем пользователей для демонстрации
     for name in &["Alice", "Bob", "John", "Vasya"] {
-        storage.add_user(name.to_string());
+        storage.add_user(name.to_string(), Currency::Rub);
     }
 
     match args[1].as_str() {
@@ -36,7 +37,7 @@ fn main() {
                 process::exit(1);
             }
             let name: Name = args[2].clone();
-            match storage.add_user(name.clone()) {
+            match storage.add_user(name.clone(), Currency::Rub) {
                 Some(_) => println!("Пользователь '{}' добавлен", name),
                 None => println!("Пользователь '{}' уже существует", name),
             }
@@ -57,10 +58,12 @@ fn main() {
                 }
             };
             match storage.deposit(&name, amount) {
-                Ok(new_balance) => println!(
-                    "Пополнено: '{}' +{}. Новый баланс: {}",
-                    name, amount, new_balance
-                ),
+                Ok(new_balance) => {
+                    println!(
+                        "Пополнено: '{}' +{}. Новый баланс: {}",
+                        name, amount, new_balance
+                    );
+                }
                 Err(e) => {
                     eprintln!("Ошибка: {}", e);
                     process::exit(1);
