@@ -1,3 +1,4 @@
+use bank_system::Balance;
 use bank_system::{Name, Storage, Currency};
 
 use std::env;
@@ -24,9 +25,14 @@ fn main() {
     // пользователей — для демонстрации работы библиотеки.
     let mut storage = Storage::new();
 
+    let users = [
+        ("Alice", Currency::Rub),
+        ("Bob", Currency::Rub),
+        ("John", Currency::Rub),
+    ];
     // Предзаполняем пользователей для демонстрации
-    for name in &["Alice", "Bob", "John", "Vasya"] {
-        storage.add_user(name.to_string(), Currency::Rub);
+    for (name, currency) in users {
+        storage.add_user(Name::from(name), currency);
     }
 
     match args[1].as_str() {
@@ -50,8 +56,8 @@ fn main() {
                 process::exit(1);
             }
             let name: Name = args[2].clone();
-            let amount: i64 = match args[3].parse() {
-                Ok(n) => n,
+            let amount = match args[3].parse() {
+                Ok(n) => Balance(n),
                 Err(_) => {
                     eprintln!("Ошибка: сумма должна быть целым числом");
                     process::exit(1);
@@ -78,8 +84,8 @@ fn main() {
                 process::exit(1);
             }
             let name: Name = args[2].clone();
-            let amount: i64 = match args[3].parse() {
-                Ok(n) => n,
+            let amount = match args[3].parse() {
+                Ok(n) => Balance(n),
                 Err(_) => {
                     eprintln!("Ошибка: сумма должна быть целым числом");
                     process::exit(1);
