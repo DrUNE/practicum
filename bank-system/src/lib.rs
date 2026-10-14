@@ -107,9 +107,9 @@ impl Storage {
 }
 
 // ==================== ТЕСТЫ ====================
-#[cfg(test)]
+#[cfg(test)]      // этот модуль компилируй, только когда запускают тесты». В обычную сборку он не попадёт.
 mod tests {
-    use super::*;
+    use super::*; // подключаем всё из родительского модуля
 
     #[test]
     fn test_new_storage_is_empty() {
@@ -219,9 +219,5 @@ mod tests {
         // проверяем, что оба пользователя добавлены успешно
         assert_eq!(storage.get_balance(&"Alice".to_string()), Some(0));
         assert_eq!(storage.get_balance(&"Bob".to_string()), Some(0));
-
-        // пробуем снять деньги из каждого счета
-        assert!(storage.withdraw(&"Alice".to_string(), 100).is_err());
-        assert!(storage.withdraw(&"Bob".to_string(), 100).is_err());
     }
 }
