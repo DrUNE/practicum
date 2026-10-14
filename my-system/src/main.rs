@@ -1,5 +1,4 @@
-use bank_system::Balance;
-use bank_system::{Name, Storage, Currency};
+use bank_system::*;
 
 use std::env;
 use std::process;

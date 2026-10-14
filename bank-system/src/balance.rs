@@ -7,6 +7,13 @@ use std::ops::{AddAssign, Sub, SubAssign};
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Balance(pub i64);
 
+#[derive(Debug, Clone, PartialEq)]
+pub enum Currency {
+    Rub,
+    Usd,
+    Eur,
+}
+
 impl Display for Balance {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}", self.0)
