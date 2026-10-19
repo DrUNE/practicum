@@ -1,4 +1,4 @@
-use crate::{Account, Balance, Currency, Name};
+use crate::{Account, Balance, Currency, Name };
 use std::collections::HashMap;
 use std::fs;
 use std::io::{BufRead, BufReader};
@@ -24,6 +24,10 @@ impl Storage {
         }
     }
 
+    pub fn new_from(accounts: HashMap<Name, Account>) -> Self {
+        Storage { accounts }
+    }
+
     /// Добавляет пользователя. Возвращает Some(0) при успехе,
     /// None если пользователь уже существует.
     pub fn add_user(&mut self, name: Name, currency: Currency) -> Option<Balance> {
@@ -31,7 +35,7 @@ impl Storage {
             None
         } else {
             self.accounts
-                .insert(name.clone(), Account::new(name, currency));
+                .insert(name.clone(), Account::new(name, Balance(0), currency));
             Some(Balance(0))
         }
     }
@@ -105,7 +109,7 @@ impl Storage {
     ///
     /// Возвращает структуру `Storage` с загруженными данными.
     pub fn load_data(file: &str) -> Storage {
-        let mut storage = Storage::new();
+        let mut accounts = HashMap::new();
 
         if Path::new(file).exists() {
             let f = fs::File::open(file).unwrap();
@@ -118,19 +122,22 @@ impl Storage {
                 if parts.len() == 2 {
                     let name = parts[0].to_string();
                     let balance: i64 = parts[1].parse().unwrap_or(0);
-
-                    storage.add_user(name.clone(), Currency::Rub);
-                    let _ = storage.deposit(&name, Balance(balance));
+                    accounts.insert(
+                        name.clone(),
+                        Account::new(name.clone(), Balance(balance), Currency::Rub),
+                    );
                 }
             }
         } else {
             // Файла нет — создаём пользователей с нуля
+            let mut storage = Storage::new_from(accounts);
             for u in ["John", "Alice", "Bob", "Vasya"] {
                 storage.add_user(u.to_string(), Currency::Rub);
             }
+            return storage;
         }
 
-        storage
+        Storage::new_from(accounts)
     }
 
     /// Сохраняет текущее состояние в CSV-файл формата "Name,Balance".

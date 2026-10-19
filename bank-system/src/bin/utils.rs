@@ -12,6 +12,7 @@ fn main() {
     println!("  deposit <name> <amount>   - пополнить баланс");
     println!("  withdraw <name> <amount>  - снять со счёта");
     println!("  balance <name>            - показать баланс");
+    println!("  list                      - показать всех пользователей");
     println!("  exit                      - выйти");
 
     let stdin = io::stdin();
@@ -123,6 +124,11 @@ fn main() {
                 match storage.get_balance(&name) {
                     Some(b) => println!("Баланс '{}': {}", name, b),
                     None => println!("Пользователь '{}' не найден", name),
+                }
+            }
+            "list" => {
+                for (user, balance) in storage.get_all() {
+                    println!("{}: {}", user, balance);
                 }
             }
             "exit" => break,

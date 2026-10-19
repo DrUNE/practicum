@@ -9,8 +9,8 @@ pub struct Account {
 }
 
 impl Account {
-    pub fn new(name: Name, currency: Currency) -> Self {
-        Account { name, balance: Balance(0), currency }
+    pub fn new(name: Name, balance: Balance, currency: Currency) -> Self {
+        Account { name, balance, currency }
     }
 }
 
