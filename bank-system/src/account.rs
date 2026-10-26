@@ -10,7 +10,11 @@ pub struct Account {
 
 impl Account {
     pub fn new(name: Name, balance: Balance, currency: Currency) -> Self {
-        Account { name, balance, currency }
+        Account {
+            name,
+            balance,
+            currency,
+        }
     }
 }
 

@@ -1,4 +1,4 @@
-use bank_system::{Name, Storage, Balance};
+use bank_system::{Balance, Name, Storage};
 use std::env;
 
 fn main() {
@@ -59,6 +59,9 @@ fn main() {
                 None => eprintln!("Пользователь '{}' не найден", name),
             }
         }
-        _ => eprintln!("Неизвестная команда: '{}'. Доступны: deposit, withdraw, balance", args[1]),
+        _ => eprintln!(
+            "Неизвестная команда: '{}'. Доступны: deposit, withdraw, balance",
+            args[1]
+        ),
     }
 }

@@ -48,10 +48,7 @@ fn main() {
                         continue;
                     }
                 };
-                if storage
-                    .add_user(name.clone(), Currency::Rub)
-                    .is_some()
-                {
+                if storage.add_user(name.clone(), Currency::Rub).is_some() {
                     let _ = storage.deposit(&name, Balance(balance));
                     println!("Пользователь '{}' добавлен с балансом {}", name, balance);
                     storage.save("balance.csv");

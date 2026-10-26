@@ -1,4 +1,4 @@
-use crate::{Account, Balance, Currency, Name };
+use crate::{Account, Balance, Currency, Name};
 use std::collections::HashMap;
 use std::fs;
 use std::io::{BufRead, BufReader};
@@ -93,10 +93,7 @@ impl Storage {
 
     /// Возвращает всех пользователей и их балансы.
     pub fn get_all(&self) -> Vec<(Name, Balance)> {
-        self.accounts
-            .iter()
-            .map(|(n, acc)| (n.clone(), acc.balance))
-            .collect()
+        self.accounts.iter().map(|(n, acc)| (n.clone(), acc.balance)).collect()
     }
 
     /// Загружает данные из файла.
@@ -154,6 +151,8 @@ impl Storage {
 // ==================== ТЕСТЫ ====================
 #[cfg(test)] // этот модуль компилируй, только когда запускают тесты». В обычную сборку он не попадёт.
 mod tests {
+    use std::io::Cursor;
+
     use super::*; // подключаем всё из родительского модуля
 
     #[test]
@@ -165,10 +164,7 @@ mod tests {
     #[test]
     fn test_add_user_success() {
         let mut storage = Storage::new();
-        assert_eq!(
-            storage.add_user("Alice".to_string(), Currency::Usd),
-            Some(Balance(0))
-        );
+        assert_eq!(storage.add_user("Alice".to_string(), Currency::Usd), Some(Balance(0)));
     }
 
     #[test]
@@ -199,21 +195,14 @@ mod tests {
         storage.add_user("Charlie".to_string(), Currency::Eur);
         let result = storage.deposit(&"Charlie".to_string(), Balance(200));
         assert_eq!(result, Ok(Balance(200)));
-        assert_eq!(
-            storage.get_balance(&"Charlie".to_string()),
-            Some(Balance(200))
-        );
+        assert_eq!(storage.get_balance(&"Charlie".to_string()), Some(Balance(200)));
     }
 
     #[test]
     fn test_deposit_negative_amount_fails() {
         let mut storage = Storage::new();
         storage.add_user("Charlie".to_string(), Currency::Eur);
-        assert!(
-            storage
-                .deposit(&"Charlie".to_string(), Balance(-50))
-                .is_err()
-        );
+        assert!(storage.deposit(&"Charlie".to_string(), Balance(-50)).is_err());
     }
 
     #[test]
@@ -238,11 +227,7 @@ mod tests {
         storage.add_user("Frank".to_string(), Currency::Usd);
         storage.deposit(&"Frank".to_string(), Balance(50)).unwrap();
         // Пытаемся снять больше, чем есть + лимит
-        assert!(
-            storage
-                .withdraw(&"Frank".to_string(), Balance(1100))
-                .is_err()
-        );
+        assert!(storage.withdraw(&"Frank".to_string(), Balance(1100)).is_err());
         // Баланс не изменился
         assert_eq!(storage.get_balance(&"Frank".to_string()), Some(Balance(50)));
     }
@@ -251,11 +236,7 @@ mod tests {
     fn test_withdraw_negative_amount_fails() {
         let mut storage = Storage::new();
         storage.add_user("Grace".to_string(), Currency::Eur);
-        assert!(
-            storage
-                .withdraw(&"Grace".to_string(), Balance(-10))
-                .is_err()
-        );
+        assert!(storage.withdraw(&"Grace".to_string(), Balance(-10)).is_err());
     }
 
     #[test]
@@ -270,10 +251,7 @@ mod tests {
         storage.add_user("Hank".to_string(), Currency::Rub);
         storage.deposit(&"Hank".to_string(), Balance(1000)).unwrap();
         storage.deposit(&"Hank".to_string(), Balance(500)).unwrap();
-        assert_eq!(
-            storage.get_balance(&"Hank".to_string()),
-            Some(Balance(1500))
-        );
+        assert_eq!(storage.get_balance(&"Hank".to_string()), Some(Balance(1500)));
     }
 
     #[test]
@@ -293,11 +271,7 @@ mod tests {
         storage.add_user("Alice".to_string(), Currency::Usd);
 
         // Снимаем 1500 при балансе 0 — превышаем лимит -1000
-        assert!(
-            storage
-                .withdraw(&"Alice".to_string(), Balance(1500))
-                .is_err()
-        );
+        assert!(storage.withdraw(&"Alice".to_string(), Balance(1500)).is_err());
 
         // Баланс не изменился после неудачного снятия
         assert_eq!(storage.get_balance(&"Alice".to_string()), Some(Balance(0)));
@@ -312,9 +286,27 @@ mod tests {
         assert!(storage.withdraw(&"Alice".to_string(), Balance(500)).is_ok());
 
         // Баланс уменьшился на 500 после успешного снятия
-        assert_eq!(
-            storage.get_balance(&"Alice".to_string()),
-            Some(Balance(-500))
-        );
+        assert_eq!(storage.get_balance(&"Alice".to_string()), Some(Balance(-500)));
+    }
+
+    #[test]
+    fn test_load_data_from_cursor() {
+        // Загружаем данные из курсора
+        let data = b"Alice,1000\nBob,2000\n";
+        let mut cursor = Cursor::new(&data[..]);
+        let mut storage = Storage::new();
+        let reader = BufReader::new(&mut cursor);
+        for line in reader.lines() {
+            let line = line.unwrap();
+            let parts: Vec<&str> = line.split(',').collect();
+            assert_eq!(parts.len(), 2);
+            let name = parts[0].to_string();
+            let balance = Balance(parts[1].parse().unwrap());
+            storage.add_user(name.clone(), Currency::Usd);
+            storage.deposit(&name, balance).unwrap();
+        }
+        // Проверяем, что данные загружены корректно
+        assert_eq!(storage.get_balance(&"Alice".to_string()), Some(Balance(1000)));
+        assert_eq!(storage.get_balance(&"Bob".to_string()), Some(Balance(2000)));
     }
 }
